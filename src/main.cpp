@@ -50,14 +50,10 @@ void check_files(ifstream& in_file, string& in_name,
   }
 }
 
-int main(int argc, char* argv[]) {
 
-  check_arguments(argc, argv);
+int process(string in_file_name_, string out_file_name_, bool tune, float stda, float yawd) {
 
-  string in_file_name_ = argv[1];
   ifstream in_file_(in_file_name_.c_str(), ifstream::in);
-
-  string out_file_name_ = argv[2];
   ofstream out_file_(out_file_name_.c_str(), ofstream::out);
 
   check_files(in_file_, in_file_name_, out_file_, out_file_name_);
@@ -131,6 +127,10 @@ int main(int argc, char* argv[]) {
 
   // Create a UKF instance
   UKF ukf;
+  if (tune) {
+    ukf.std_a_ = stda;
+    ukf.std_yawdd_ = yawd;
+  }
 
   // used to compute the RMSE later
   vector<VectorXd> estimations;
@@ -228,5 +228,35 @@ int main(int argc, char* argv[]) {
   }
 
   cout << "Done!" << endl;
-  return 0;
+  if (tune) {
+    Eigen::VectorXd res = tools.CalculateRMSE(estimations, ground_truth);
+    int score = res[0]*600+res[1]*600+res[2]*100+res[3]*100;
+    return score;
+  }
+  else {
+    return 0;
+  }
+}
+
+int main(int argc, char* argv[]) {
+  // adding function for gradient descent on parameter tuning
+  check_arguments(argc, argv);
+  int ret = 0;
+  string in_file_name_ = argv[1];
+  string out_file_name_ = argv[2];
+  bool tune = false;
+  if (tune) {
+    string in_file1 = "../data/sample-laser-radar-measurement-data-1.txt";
+    string in_file2 = "../data/sample-laser-radar-measurement-data-2.txt";
+    // TODO Implement parameter optimization!!!
+    // Pass parameters as inputs
+    // return px*5+py*5+vx+vy
+    float stda = 0.0;
+    float stdyawd = 0.0;
+    ret = process(in_file_name_, out_file_name_, tune, stda, stdyawd);
+  }
+  else {
+    ret = process(in_file_name_, out_file_name_, tune, 0.0, 0.0);
+  }
+  return ret;
 }

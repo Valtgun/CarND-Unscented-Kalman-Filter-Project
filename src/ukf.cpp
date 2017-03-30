@@ -28,10 +28,14 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 0.65; // default was 30
+  std_a_ = 0.8; // default was 30
+  // best for input 1 = 0.65
+  // input 2 passes with = 0.8
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.75;  // default was 30
+  std_yawdd_ = 0.4;  // default was 30
+  // best for input 1 = 0.75
+  // input 2 passes with = 0.4
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -262,6 +266,7 @@ void UKF::Prediction(double delta_t) {
  * @param {MeasurementPackage} meas_package
  */
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
+  if (x_(0) == 0) return;
   MatrixXd Zsig = MatrixXd(n_zl_, 2 * n_aug_ + 1);
 
   //transform sigma points into measurement space
@@ -361,6 +366,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
  * @param {MeasurementPackage} meas_package
  */
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
+  if (x_(0) == 0) return;
   MatrixXd Zsig = MatrixXd(n_zr_, 2 * n_aug_ + 1);
 
   //transform sigma points into measurement space

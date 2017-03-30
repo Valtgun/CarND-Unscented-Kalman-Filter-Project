@@ -65,6 +65,11 @@ public:
   ///* Augmented state dimension
   int n_aug_;
 
+  //set measurement dimension, radar can measure r, phi, and r_dot
+  int n_zr_;
+  //set measurement dimension, ;laser can measure px, py
+  int n_zl_;
+
   ///* Sigma point spreading parameter
   double lambda_;
 
@@ -74,6 +79,8 @@ public:
   ///* the current NIS for laser
   double NIS_laser_;
 
+  // Tools class init
+  Tools tools_;
   /**
    * Constructor
    */

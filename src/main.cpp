@@ -51,7 +51,7 @@ void check_files(ifstream& in_file, string& in_name,
 }
 
 
-int process(string in_file_name_, string out_file_name_, bool tune, float stda, float yawd) {
+float process(string in_file_name_, string out_file_name_, bool tune, VectorXd params) {
 
   ifstream in_file_(in_file_name_.c_str(), ifstream::in);
   ofstream out_file_(out_file_name_.c_str(), ofstream::out);
@@ -128,8 +128,8 @@ int process(string in_file_name_, string out_file_name_, bool tune, float stda, 
   // Create a UKF instance
   UKF ukf;
   if (tune) {
-    ukf.std_a_ = stda;
-    ukf.std_yawdd_ = yawd;
+    ukf.std_a_ = params(0);
+    ukf.std_yawdd_ = params(1);
   }
 
   // used to compute the RMSE later
@@ -216,7 +216,9 @@ int process(string in_file_name_, string out_file_name_, bool tune, float stda, 
 
   // compute the accuracy (RMSE)
   Tools tools;
-  cout << "Accuracy - RMSE:" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
+  if (!tune) {
+    cout << "Accuracy - RMSE:" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
+  }
 
   // close files
   if (out_file_.is_open()) {
@@ -226,37 +228,89 @@ int process(string in_file_name_, string out_file_name_, bool tune, float stda, 
   if (in_file_.is_open()) {
     in_file_.close();
   }
-
-  cout << "Done!" << endl;
+  if (!tune) {
+    cout << "Done!" << endl;
+  }
   if (tune) {
     Eigen::VectorXd res = tools.CalculateRMSE(estimations, ground_truth);
-    int score = res[0]*600+res[1]*600+res[2]*100+res[3]*100;
+    float score = res[0]*5+res[1]*5+res[2]+res[3];
     return score;
   }
   else {
-    return 0;
+    return 0.0;
   }
 }
 
 int main(int argc, char* argv[]) {
+  // ********************************************************
   // adding function for gradient descent on parameter tuning
+  // Twiddle from AI for Robotics course
+  // ********************************************************
+
+  // turn on of off the tuning
+  // if the tuning is turned on, both files are calculated
+  bool tune = false;
+
   check_arguments(argc, argv);
-  int ret = 0;
+  float best_err = 0.0;
   string in_file_name_ = argv[1];
   string out_file_name_ = argv[2];
-  bool tune = false;
+
+  VectorXd params = VectorXd(2);
   if (tune) {
     string in_file1 = "../data/sample-laser-radar-measurement-data-1.txt";
     string in_file2 = "../data/sample-laser-radar-measurement-data-2.txt";
-    // TODO Implement parameter optimization!!!
-    // Pass parameters as inputs
-    // return px*5+py*5+vx+vy
-    float stda = 0.0;
-    float stdyawd = 0.0;
-    ret = process(in_file_name_, out_file_name_, tune, stda, stdyawd);
+    float stda = 2;
+    float stdyawd = 1;
+    params << stda, stdyawd;
+
+    VectorXd d_params = VectorXd(2);
+    d_params << 0.2,0.2;
+    float tol = 0.001;
+    //best_err = process(in_file2, out_file_name_, tune, params);
+    best_err = process(in_file1, out_file_name_, tune, params) + process(in_file2, out_file_name_, tune, params);
+    int epochs = 0;
+    while (d_params.sum()>tol) {
+      cout << "Epoch:" << epochs << endl;
+      cout << "Dparam:" << d_params.sum() << endl;
+      cout << "Params stda:" << params(0) << endl;
+      cout << "Params stdyawd:" << params(1) << endl;
+      cout << "Best err:" << best_err << endl;
+      epochs++;
+      for (int i=0; i<params.size(); i++) {
+        params(i) += d_params(i);
+        //int err = process(in_file2, out_file_name_, tune, params);
+        float err = process(in_file1, out_file_name_, tune, params) + process(in_file2, out_file_name_, tune, params);
+        cout << "err:" << err << endl;
+        if (err < best_err)
+        {
+          best_err = err;
+          d_params(i) *= 1.2;
+        }
+        else {
+          params(i) -= 2*d_params(i);
+          //int err = process(in_file2, out_file_name_, tune, params);
+          float err = process(in_file1, out_file_name_, tune, params) + process(in_file2, out_file_name_, tune, params);
+          cout << "err:" << err << endl;
+          if (err < best_err)
+          {
+            best_err = err;
+            d_params(i) *= 1.2;
+          }
+          else {
+            params(i) += d_params(i);
+            d_params(i) *= 0.9;
+          }
+        }
+      }
+    }
+    cout << "Parameters:" << params << endl;
   }
+  // ********************************************************
+  // END of Twiddle
+  // ********************************************************
   else {
-    ret = process(in_file_name_, out_file_name_, tune, 0.0, 0.0);
+    best_err = process(in_file_name_, out_file_name_, tune, params);
   }
-  return ret;
+  return best_err;
 }

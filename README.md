@@ -1,4 +1,4 @@
-# Unscented Kalman Filter Project Starter Code
+# Unscented Kalman Filter Project
 Self-Driving Car Engineer Nanodegree Program
 
 ---
@@ -49,12 +49,7 @@ UKF project was very interesting as good accuracy can be achieved with relativel
 Looking forward to use it for multiple objects and closer to real world scenarios.
 
 
-## Original description
-## Dependencies
-
-* cmake >= v3.5
-* make >= v4.1
-* gcc/g++ >= v5.4
+---
 
 ## Basic Build Instructions
 
@@ -64,3 +59,9 @@ Looking forward to use it for multiple objects and closer to real world scenario
 4. Run it: `./UnscentedKF path/to/input.txt path/to/output.txt`. You can find
    some sample inputs in 'data/'.
     - eg. `./UnscentedKF ../data/sample-laser-radar-measurement-data-1.txt output.txt`
+
+## Dependencies
+
+    * cmake >= v3.5
+    * make >= v4.1
+    * gcc/g++ >= v5.4

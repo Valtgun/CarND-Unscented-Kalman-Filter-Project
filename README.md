@@ -17,6 +17,26 @@ Using twiddle it was very easy to find parameters for each of the inputs.
 Finding parameters for both functions required some tweaking
 of the twiddle parameters (initial values and step size).
 
+### Final parameters and results
+Process noise standard deviation for longitudinal acceleration in m/s^2:
+std_a_ = 0.172273
+
+Process noise standard deviation for yaw acceleration in rad/s^2
+std_yawdd_ = 0.527692
+
+RMSE Input-1:
+0.0783064
+0.08918
+0.601317
+0.586528
+
+RMSE Input-2:
+0.187847
+0.18742
+0.282282
+0.466106
+
+
 Here are the plots for Ground Truth, Measurements and UKF Estimate
 For Input-1:
 ![Plot - Input 1](img/plot1.png)
